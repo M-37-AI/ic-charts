@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iC Charts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Manrope:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <div class="brand" title="Eigener Nachbau – kein Produkt von TradingView">
+      <span class="mark"><i></i><i></i><i></i></span>
+      <span class="word">iC <em>Charts</em></span>
+    </div>
+    <div class="symbol-box">
+      <input id="symbolInput" list="symbolList" spellcheck="false" autocomplete="off" value="BTCUSDT" aria-label="Symbol">
+      <datalist id="symbolList"></datalist>
+    </div>
+    <div class="seg" id="tfGroup"></div>
+    <div class="seg" id="indGroup"></div>
+    <div class="spacer"></div>
+    <div id="pricebox"><span id="lastPrice">–</span><span id="lastChange">–</span></div>
+    <button id="btnReplay" class="pill" title="Kerzen-Replay: die Vergangenheit Kerze für Kerze abspielen">▶ Replay</button>
+    <button id="btnTest" class="pill" title="Offline-Testmodus: gespeicherte Daten + simulierte Ticks">Testmodus</button>
+    <div id="conn" class="conn"><i></i><span>verbinde…</span></div>
+  </header>
+
+  <div id="tape" aria-label="Beobachtungsliste"></div>
+
+  <main id="stage">
+    <nav id="toolbar" aria-label="Werkzeuge">
+    <button data-tool="cross" class="active" title="Fadenkreuz (Esc)"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/></svg></button>
+    <button data-tool="hline" title="Horizontale Linie (Alt+H)"><svg viewBox="0 0 24 24"><path d="M3 12h18"/><circle cx="12" cy="12" r="2.2"/></svg></button>
+    <button data-tool="alarm" title="Preisalarm (Alt+A)"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button>
+    <button data-tool="trend" title="Trendlinie (Alt+T)"><svg viewBox="0 0 24 24"><path d="M4 19 20 5"/><circle cx="4" cy="19" r="2"/><circle cx="20" cy="5" r="2"/></svg></button>
+    <button data-tool="fib" title="Fibonacci-Retracement (Alt+F): Hoch und Tief klicken"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 10h16M4 13h16M4 16h16M4 19h16"/></svg></button>
+    <button data-tool="pos" title="Position (Alt+P): Einstieg, Ziel, Stop klicken"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M5 6h14v6H5z" fill="rgba(61,220,151,.35)"/><path d="M5 12h14v5H5z" fill="rgba(255,107,122,.35)"/></svg></button>
+    <div class="sep"></div>
+    <button data-action="clear" title="Alle Zeichnungen löschen"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg></button>
+    <button data-action="fit" title="Ansicht zurücksetzen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    <div class="sep"></div>
+    <button data-action="fullscreen" title="Vollbild (Alt+V)"><svg class="fs-on" viewBox="0 0 24 24"><path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5"/><path d="M3 3l6 6M21 3l-6 6M21 21l-6-6M3 21l6-6"/></svg><svg class="fs-off" viewBox="0 0 24 24"><path d="M9 3v6H3M15 3v6h6M21 15h-6v6M3 15h6v6"/><path d="M9 9 3 3M15 9l6-6M15 15l6 6M9 15l-6 6"/></svg></button>
+  </nav>
+    <div id="panes"></div>
+    <div id="toolHint"></div>
+    <div id="toasts"></div>
+    <div id="replayBar">
+      <b>REPLAY</b>
+      <button id="rpPlay" title="Abspielen / Pause (Leertaste)">⏸</button>
+      <button id="rpStep" title="Eine Kerze weiter (→)">⏭</button>
+      <select id="rpSpeed" title="Geschwindigkeit"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option><option value="8">8×</option></select>
+      <span id="rpPos" class="muted"></span>
+      <input id="rpSlider" type="range" min="0" max="100" value="0" title="Position">
+      <button id="rpStop" class="ghost">Beenden</button>
+    </div>
+  </main>
+
+  <aside id="side">
+    <section class="card" id="bookCard" style="display:none">
+      <h3>Orderbuch <span class="tag-live" id="bookInfo">live</span></h3>
+      <div id="book"><div class="asks"></div><div class="spread"></div><div class="bids"></div></div>
+    </section>
+    <section class="card">
+      <h3>Alarme <span id="alarmCount" class="badge">0</span></h3>
+      <ul id="alarmList"><li class="muted">Glocke links wählen und in den Chart klicken.</li></ul>
+    </section>
+    <section class="card grow">
+      <h3>Mini-Script <span class="muted small">eigene Formelsprache, kein eval</span></h3>
+      <div class="examples" id="examples"></div>
+      <div class="editor">
+        <pre id="hl" aria-hidden="true"></pre>
+        <textarea id="code" spellcheck="false" aria-label="Mini-Script"></textarea>
+      </div>
+      <div class="runrow">
+        <button id="btnRun" class="primary">▶ Ausführen <span class="muted small">Strg+Enter</span></button>
+        <button id="btnClearScript" class="ghost">Entfernen</button>
+      </div>
+      <div id="scriptOut" class="out"></div>
+      <div id="btStats" class="bt" style="display:none"></div>
+      <details class="help"><summary>Sprachumfang</summary>
+        <p><code>close open high low volume hl2 hlc3</code> · <code>sma ema rma rsi stdev highest lowest bbupper bblower macd macdsignal macdhist vwap atr stoch stochd supertrend crossover crossunder change abs max min</code> · Ausgaben: <code>plot(x, "farbe")</code> im Kurschart, <code>panel(x)</code> unten, <code>alert(bedingung, "Text")</code> setzt Signale, <code>hline(preis)</code>, <code>buy(bedingung)</code> / <code>sell(bedingung)</code> starten den Backtest (nur long, Ausführung zur nächsten Eröffnung, 0,1 % Gebühr je Seite). Rechnen mit <code>+ - * / &gt; &lt; and or not</code>, Variablen mit <code>name = …</code>.</p>
+      </details>
+    </section>
+  </aside>
+
+  <footer id="status">
+    <span id="srcInfo">–</span>
+    <span id="tickInfo"></span>
+    <span class="spacer"></span>
+    <span>Eigener Nachbau für das Video von Niko Sarge · keine Anlageberatung</span>
+    <a href="#" id="licLink">Lizenzen</a>
+    <a href="https://www.tradingview.com/lightweight-charts/" target="_blank" rel="noopener" class="attr">Charts: TradingView Lightweight Charts™</a>
+  </footer>
+</div>
+
+<dialog id="licDlg">
+  <h2>Lizenzen &amp; Datenquellen</h2>
+  <p><b>iC Charts</b> ist ein eigenständiger Nachbau. Oberfläche, Indikatoren (<code>indicators.js</code>), Mini-Script (<code>script-engine.js</code>), Backtester (<code>backtest.js</code>), Zeichenebene (<code>drawings.js</code>), Replay, Orderbuch und Zeichenwerkzeuge sind eigener Code. Kein Code aus TradingView Desktop wurde verwendet.</p>
+  <p>Chart-Darstellung: <b>Lightweight Charts™ 4.2.0</b>, Copyright © 2024 TradingView, Inc., <a href="https://www.tradingview.com/" target="_blank" rel="noopener">https://www.tradingview.com/</a>, Apache License 2.0 (<a href="lib/LICENSE-lightweight-charts.txt" target="_blank">Lizenztext</a>). Die Bibliothek liegt unverändert in <code>lib/</code>.</p>
+  <p>Daten: Binance öffentliche REST- und WebSocket-API (Krypto, ohne Login); Aktien als vorab gespeicherter Schnappschuss vom öffentlichen Yahoo-Finance-Chart-Endpunkt. Nur zur Demonstration, keine Anlageberatung, keine Gewähr.</p>
+  <form method="dialog"><button class="primary">Schließen</button></form>
+</dialog>
+
+<script src="lib/lightweight-charts.standalone.production.js"></script>
+<script src="data/snapshot.js"></script>
+<script src="indicators.js"></script>
+<script src="backtest.js"></script>
+<script src="drawings.js"></script>
+<script src="script-engine.js"></script>
+<script src="app.js"></script>
+<script src="lab.js"></script>
+<script src="agent-panel.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "ic-charts-agent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Claude (Agent SDK) als Chat im Chart – lokaler Server mit WebSocket und Chart-Werkzeugen",
+  "scripts": {
+    "start": "node server.mjs",
+    "mock": "AGENT_MOCK=1 node server.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.296",
+    "ws": "^8.18.0",
+    "zod": "^4.0.0"
+  }
+}
